@@ -1,0 +1,46 @@
+/***************************************************
+*说明：模块在初始上电阶段，外部起振困难，可以先用内部时钟作为引导；
+*如果没有这个内部时钟引导，锁相的状态可能(猜测)不稳定甚至无法完成锁相功能;
+*不管是400K还是4M，最好都要考虑到这种可能性.
+*具体参考如下:
+*if External_PLL=24MHZ,then Standard_CLK=24MHZ
+*if External_PLL=2.4MHZ,then Standard_CLK=2.4MHZ
+*修改时候请注意内部锁相环的配置和spi模块
+*date:2013/01/29
+*Author:Yu Xuejun
+*****/
+
+
+module Freq_initial(input Clk_100M,
+					input External_PLL,
+					input Standard_CLK,
+					input SYS_START,
+					output Refin_Clk);
+					
+reg[9:0] cnt;
+reg      ClkStart;
+	
+	
+					
+always @(posedge Clk_100M)
+begin
+	if(!SYS_START)
+		begin
+		cnt <= 10'b0;
+		ClkStart <= 1'b0;
+		end
+	else
+		begin
+		if(cnt < 10'd100)
+			begin
+			cnt <= cnt + 1'b1;
+			ClkStart <= 1'b0;
+			end
+		else
+			ClkStart <= 1'b1;
+		end
+end
+					
+assign Refin_Clk=(ClkStart)?External_PLL:Standard_CLK;
+//assign Refin_Clk=External_PLL;//Standard_CLK;					
+endmodule
